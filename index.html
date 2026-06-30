@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Market Manager Pro – Final</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700&display=swap');
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            background-color: #87CEEB;
+            touch-action: none;
+            user-select: none;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            z-index: 9999;
+        }
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3.5rem;
+            color: white;
+            text-shadow: 3px 3px 0px #222;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        h2 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            color: white;
+            text-shadow: 2px 2px 0px #222;
+            margin: 8px 0;
+            text-align: center;
+        }
+        .btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.5rem;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 5px #c0392b;
+            transition: 0.1s;
+            margin: 10px;
+            pointer-events: auto;
+        }
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px #c0392b;
+        }
+        .btn.green {
+            background-color: #2ecc71;
+            box-shadow: 0 5px #27ae60;
+        }
+        .btn.blue {
+            background-color: #3498db;
+            box-shadow: 0 5px #2980b9;
+        }
+        .btn.small {
+            padding: 10px 20px;
+            font-size: 1.1rem;
+        }
+        #game-ui {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #stats {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            border: 2px solid #555;
+            z-index: 50;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            line-height: 1.3;
+        }
+        #stats .stat-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #stats span {
+            font-weight: bold;
+            color: #2ecc71;
+        }
+        #pause-btn {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            z-index: 200;
+            pointer-events: auto;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #fff;
+            transition: 0.2s;
+        }
+        #pause-btn:active {
+            transform: translateX(-50%) scale(0.9);
+        }
+        #pause-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+        #joystick-zone {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50vw;
+            height: 60vh;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        #look-zone {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 50vw;
+            height: 100vh;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        #joystick-base {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: none;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            z-index: 15;
+        }
+        #joystick-stick {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid #f1c40f;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+            z-index: 1000;
+            touch-action: none;
+        }
+        #crosshair:active {
+            background: #e0e0e0;
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+        #crosshair-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+            z-index: 5;
+            pointer-events: none;
+        }
+        #watermark {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.3;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+            z-index: 50;
+            pointer-events: none;
+        }
+        #tutorial-text {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            z-index: 2000;
+            display: none;
+            white-space: nowrap;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+        }
+        #tutorial-arrow {
+            position: absolute;
+            z-index: 2001;
+            display: none;
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 25px solid #2ecc71;
+            filter: drop-shadow(0 0 6px #000);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .money-popup {
+            position: absolute;
+            font-family: 'Fredoka One', cursive;
+            font-size: 2rem;
+            color: #2ecc71;
+            text-shadow: 2px 2px 0 #000;
+            pointer-events: none;
+            z-index: 3000;
+            animation: floatUp 1.5s ease-out forwards;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-80px); }
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            pointer-events: auto;
+        }
+        .overlay.active {
+            display: flex;
+        }
+        .overlay-box {
+            background: #2c3e50;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            border: 3px solid #f1c40f;
+            max-width: 400px;
+            width: 85%;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        }
+        .overlay-box input {
+            font-size: 1.5rem;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #555;
+            text-align: center;
+            width: 80%;
+            margin: 10px 0;
+            font-family: 'Fredoka One', cursive;
+            letter-spacing: 4px;
+        }
+        .overlay-box .btn {
+            margin: 5px;
+        }
+        .notif {
+            position: absolute;
+            top: 12%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(46, 204, 113, 0.95);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            z-index: 4000;
+            pointer-events: none;
+            animation: notifFade 3s ease-out forwards;
+            font-family: 'Fredoka One', cursive;
+        }
+        @keyframes notifFade {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            75% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
+    </script>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="ui-layer">
+        <div id="home-screen" class="screen">
+            <h1>Market Manager</h1>
+            <button class="btn" id="btn-play" onclick="startGame(false)">Play Game</button>
+            <button class="btn green" id="btn-continue" style="display:none;" onclick="startGame(true)">Continue</button>
+        </div>
+        <div id="game-ui">
+            <div id="stats">
+                <div class="stat-line">Money: <span id="ui-money">50.00</span></div>
+                <div class="stat-line">Day: <span id="ui-day">1</span></div>
+                <div class="stat-line">Time: <span id="ui-time">08:00</span></div>
+            </div>
+            <div id="pause-btn" onclick="togglePause()">
+                <svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+            </div>
+            <div id="crosshair-dot"></div>
+            <div id="crosshair" onpointerdown="interact(event)"></div>
+            <div id="watermark">made by Vewerty Ploik</div>
+            <div id="joystick-zone"></div><div id="look-zone"></div>
+            <div id="joystick-base"><div id="joystick-stick"></div></div>
+            <div id="tutorial-text"></div>
+            <div id="tutorial-arrow"></div>
+            <div id="pause-overlay" class="overlay">
+                <div class="overlay-box">
+                    <h2>Paused</h2>
+                    <button class="btn blue" onclick="togglePause()">Resume</button>
+                    <button class="btn green" onclick="saveAndExit()">Save & Exit</button>
+                    <br/>
+                    <input type="text" id="code-input" placeholder="Enter code..." maxlength="10" inputmode="numeric" pattern="[0-9]*">
+                    <br/>
+                    <button class="btn small" onclick="submitCode()">Submit Code</button>
+                </div>
+            </div>
+            <div id="computer-overlay" class="overlay">
+                <div class="overlay-box">
+                    <h2>Store Computer</h2>
+                    <div id="comp-content"></div>
+                    <button class="btn small" onclick="closeComputer()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const svgStock = `<svg viewBox="0 0 24 24" width="45" height="45" fill="#3498db"><path d="M12 21l-9-9h6V3h6v9h6z"/></svg>`;
+        const svgDrop = `<svg viewBox="0 0 24 24" width="45" height="45" fill="#e74c3c"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/></svg>`;
+        const svgMoney = `<svg viewBox="0 0 24 24" width="45" height="45" fill="#2ecc71"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>`;
+        const svgComputer = `<svg viewBox="0 0 24 24" width="45" height="45" fill="#9b59b6"><rect x="2" y="3" width="20" height="14" rx="2" fill="#9b59b6"/><rect x="4" y="5" width="16" height="10" rx="1" fill="#1a1a2e"/><rect x="8" y="19" width="8" height="2" rx="1" fill="#7f8c8d"/><rect x="6" y="21" width="12" height="1.5" rx="0.75" fill="#95a5a6"/></svg>`;
+
+        let gameData = { day: 1, money: 50.00, timeHours: 8, timeMinutes: 0 };
+        let inventory = { holdingBox: false, cerealCount: 0, holdingMilkBox: false, milkCount: 0 };
+        let shelfStock = []; const MAX_SHELF_CAPACITY = 15;
+        let fridgeStock = []; const MAX_FRIDGE_CAPACITY = 9;
+        let ownsFridge = false;
+        let customers = [], interactables = [], deliveryBoxes = [];
+        let targetedObject = null, heldBoxVisual = null;
+        let deliveryTimer = 0, milkAutoTimer = 60;
+        let cerealRespawnTimer = 0;
+        let tutorialStep = 0, tutorialActive = true, fridgeTutorialActive = false, fridgeTutorialStep = 0;
+        let fridgeTutorialShown = false, tutorialCompletedGlobal = false;
+        let isPaused = false;
+        let starsParticles = null, nightMode = 0;
+        let fridgeGroup = null, fridgeDoorHinge = null;
+        let fridgeDoorTargetAngle = 0, fridgeDoorCurrentAngle = 0;
+        let fridgeShelves = [];
+
+        function createTexture(color1, color2, isTape = false) {
+            const cvs = document.createElement('canvas'); cvs.width = 256; cvs.height = 256;
+            const ctx = cvs.getContext('2d'); ctx.fillStyle = color1; ctx.fillRect(0, 0, 256, 256);
+            if (isTape) { ctx.fillStyle = color2; ctx.fillRect(108, 0, 40, 256); }
+            return new THREE.CanvasTexture(cvs);
+        }
+        function createCerealTexture() {
+            const cvs = document.createElement('canvas'); cvs.width = 128; cvs.height = 256;
+            const ctx = cvs.getContext('2d'); ctx.fillStyle = '#e74c3c'; ctx.fillRect(0,0,128,256);
+            ctx.fillStyle = 'white'; ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('Fresh', 64, 80); ctx.fillText('Oats', 64, 110);
+            ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(64, 180, 30, 0, Math.PI*2); ctx.fill();
+            return new THREE.CanvasTexture(cvs);
+        }
+        function createMilkCartonTexture() {
+            const cvs = document.createElement('canvas'); cvs.width = 128; cvs.height = 200;
+            const ctx = cvs.getContext('2d'); ctx.fillStyle = '#fefefe'; ctx.fillRect(0,0,128,200);
+            ctx.fillStyle = '#e8e8e8'; ctx.fillRect(4,4,120,192);
+            ctx.fillStyle = '#2c3e50'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+            ctx.fillText('Fresh', 64, 60); ctx.fillText('Milk', 64, 85);
+            ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.arc(64, 140, 18, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = 'white'; ctx.font = '16px Arial'; ctx.textAlign = 'center'; ctx.fillText('milk', 64, 146);
+            ctx.strokeStyle = '#bdc3c7'; ctx.lineWidth = 2; ctx.strokeRect(6,6,116,188);
+            return new THREE.CanvasTexture(cvs);
+        }
+        function createMilkBoxTexture() {
+            const cvs = document.createElement('canvas'); cvs.width = 256; cvs.height = 256;
+            const ctx = cvs.getContext('2d'); ctx.fillStyle = '#87CEEB'; ctx.fillRect(0,0,256,256);
+            ctx.fillStyle = '#5dade2'; ctx.fillRect(4,4,248,248);
+            ctx.fillStyle = '#111'; ctx.fillRect(108,0,40,256);
+            ctx.fillStyle = 'white'; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'center'; ctx.fillText('MILK', 128, 140);
+            return new THREE.CanvasTexture(cvs);
+        }
+        function createMoneyTexture() {
+            const cvs = document.createElement('canvas'); cvs.width = 128; cvs.height = 64;
+            const ctx = cvs.getContext('2d'); ctx.fillStyle = '#2ecc71'; ctx.fillRect(0,0,128,64);
+            ctx.fillStyle = '#27ae60'; ctx.fillRect(5,5,118,54);
+            ctx.fillStyle = 'white'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.fillText('$', 64, 45);
+            return new THREE.CanvasTexture(cvs);
+        }
+
+        let scene, camera, renderer, clock;
+        let cars = [];
+        const raycaster = new THREE.Raycaster(); const screenCenter = new THREE.Vector2(0, 0);
+        const cerealGeo = new THREE.BoxGeometry(0.3, 0.45, 0.15);
+        const cerealMat = new THREE.MeshStandardMaterial({ map: createCerealTexture() });
+        const boxMat = new THREE.MeshStandardMaterial({ map: createTexture('#8B5A2B', '#D2B48C', true) });
+        const milkBoxMat = new THREE.MeshStandardMaterial({ map: createMilkBoxTexture() });
+
+        function createMilkCartonMesh() {
+            const group = new THREE.Group();
+            const bodyGeo = new THREE.CylinderGeometry(0.09, 0.11, 0.28, 4); bodyGeo.rotateY(Math.PI/4);
+            const bodyMat = new THREE.MeshStandardMaterial({ map: createMilkCartonTexture(), roughness:0.4 });
+            const body = new THREE.Mesh(bodyGeo, bodyMat); body.position.y=0.14; body.castShadow=true; body.receiveShadow=true;
+            group.add(body);
+            const topGeo = new THREE.BoxGeometry(0.16, 0.06, 0.16);
+            const topMat = new THREE.MeshStandardMaterial({ color:0xf5f5f5, roughness:0.3 });
+            const top = new THREE.Mesh(topGeo, topMat); top.position.y=0.30; top.castShadow=true;
+            group.add(top);
+            const spoutGeo = new THREE.BoxGeometry(0.04, 0.05, 0.06);
+            const spout = new THREE.Mesh(spoutGeo, topMat); spout.position.set(0.04,0.34,0); spout.castShadow=true;
+            group.add(spout);
+            group.userData = { type:'milk_carton' };
+            return group;
+        }
+
+        function startGame(loadSave) {
+            document.getElementById('home-screen').style.display='none';
+            document.getElementById('game-ui').style.display='block';
+            tutorialCompletedGlobal = localStorage.getItem('mm_tutorial_done') === 'true';
+            if(loadSave && localStorage.getItem('marketManagerSave')) {
+                loadGame();
+            } else {
+                resetGameState();
+                tutorialActive = !tutorialCompletedGlobal;
+            }
+            if(!tutorialActive) fridgeTutorialShown = true;
+            if(gameData.money>=100 && !ownsFridge && !fridgeTutorialShown) {
+                fridgeTutorialShown=true; showFridgeTutorial();
+            }
+            init3D();
+            setupControls();
+            updateComputerUI();
+            document.getElementById('pause-overlay').classList.remove('active');
+            isPaused = false;
+        }
+        function resetGameState() {
+            gameData = { day:1,money:50.00,timeHours:8,timeMinutes:0 };
+            inventory = { holdingBox:false,cerealCount:0,holdingMilkBox:false,milkCount:0 };
+            shelfStock=[]; fridgeStock=[]; ownsFridge=false; customers=[]; interactables=[]; deliveryBoxes=[];
+            targetedObject=null; heldBoxVisual=null; deliveryTimer=0; milkAutoTimer=60; cerealRespawnTimer=0;
+            tutorialStep=0; fridgeTutorialActive=false; fridgeTutorialStep=0; fridgeTutorialShown=false; fridgeGroup=null; fridgeShelves=[]; starsParticles=null; cars=[];
+        }
+        function saveGame() {
+            const saveData = {
+                gameData, inventory, ownsFridge,
+                shelfStockData: shelfStock.map(b=>({type:'cereal',pos:b.position.toArray()})),
+                fridgeStockData: fridgeStock.map(b=>({type:'milk',pos:b.position.toArray()})),
+                deliveryBoxesData: deliveryBoxes.map(b=>({pos:b.position.toArray(),count:b.userData.count,type:b.userData.boxType})),
+                deliveryTimer, milkAutoTimer, cerealRespawnTimer,
+                tutorialActive, tutorialStep, fridgeTutorialActive, fridgeTutorialStep, fridgeTutorialShown,
+            };
+            localStorage.setItem('marketManagerSave', JSON.stringify(saveData));
+            localStorage.setItem('mm_tutorial_done', tutorialCompletedGlobal ? 'true' : 'false');
+        }
+        function loadGame() {
+            const raw = localStorage.getItem('marketManagerSave'); if(!raw) return;
+            const sd = JSON.parse(raw);
+            gameData=sd.gameData; inventory=sd.inventory; ownsFridge=sd.ownsFridge;
+            deliveryTimer=sd.deliveryTimer||0; milkAutoTimer=sd.milkAutoTimer??60; cerealRespawnTimer=sd.cerealRespawnTimer||0;
+            tutorialActive=sd.tutorialActive??true; tutorialStep=sd.tutorialStep??0;
+            fridgeTutorialActive=sd.fridgeTutorialActive||false; fridgeTutorialStep=sd.fridgeTutorialStep||0; fridgeTutorialShown=sd.fridgeTutorialShown||false;
+            shelfStock=[]; fridgeStock=[]; deliveryBoxes=[]; customers=[]; interactables=[]; targetedObject=null; heldBoxVisual=null;
+            fridgeGroup=null; fridgeShelves=[]; starsParticles=null; cars=[];
+            window._saveDataPending = sd;
+        }
+        function saveAndExit() {
+            saveGame();
+            scene=null; camera=null; renderer=null;
+            document.getElementById('canvas-container').innerHTML='';
+            document.getElementById('game-ui').style.display='none';
+            document.getElementById('home-screen').style.display='flex';
+            document.getElementById('pause-overlay').classList.remove('active');
+            isPaused=false;
+            checkContinueButton();
+        }
+        function checkContinueButton() {
+            document.getElementById('btn-continue').style.display = localStorage.getItem('marketManagerSave') ? 'inline-block' : 'none';
+        }
+        function togglePause() {
+            isPaused = !isPaused;
+            if(isPaused) document.getElementById('pause-overlay').classList.add('active');
+            else document.getElementById('pause-overlay').classList.remove('active');
+        }
+        function submitCode() {
+            const code = document.getElementById('code-input').value.trim();
+            if(code==='6550') { gameData.money+=300; document.getElementById('code-input').value=''; showNotification('Code accepted! +$300'); saveGame(); }
+            else if(code.length>0) showNotification('Invalid code');
+        }
+        function showNotification(msg) {
+            const n = document.createElement('div'); n.className='notif'; n.textContent=msg;
+            document.getElementById('game-ui').appendChild(n);
+            setTimeout(()=>{ if(n.parentNode)n.remove(); },3000);
+        }
+        function showFridgeTutorial() {
+            const ov = document.createElement('div'); ov.className='overlay active';
+            ov.innerHTML=`<div class="overlay-box"><h2>You reached $100!</h2><p style="color:#fff;">Buy a Fridge for $100 at the computer!</p><p style="color:#ddd;">You'll get $10 bonus and free milk delivery every minute.</p><button class="btn blue" onclick="this.parentElement.parentElement.remove()">Got it!</button></div>`;
+            document.getElementById('game-ui').appendChild(ov);
+        }
+        function openComputer() { if(isPaused)return; updateComputerUI(); document.getElementById('computer-overlay').classList.add('active'); isPaused=true; }
+        function closeComputer() { document.getElementById('computer-overlay').classList.remove('active'); isPaused=false; updateComputerUI(); }
+        function updateComputerUI() {
+            const c = document.getElementById('comp-content');
+            let h=''; h+=`<p style="color:#fff;">Money: $${gameData.money.toFixed(2)}</p>`;
+            if(!ownsFridge) {
+                const can=gameData.money>=100;
+                h+=`<button class="btn ${can?'green':''}" ${can?'':'disabled'} onclick="buyFridge()">Buy Fridge - $100</button>`;
+            } else {
+                h+=`<p style="color:#2ecc71;">Fridge Owned</p><p>Milk in fridge: ${fridgeStock.length}/${MAX_FRIDGE_CAPACITY}</p>`;
+                h+=`<p style="color:#f1c40f;">Free milk box every 60s</p>`;
+            }
+            c.innerHTML=h;
+        }
+        function buyFridge() {
+            if(gameData.money<100 || ownsFridge) return;
+            gameData.money-=100; ownsFridge=true; gameData.money+=10;
+            buildFridge(); showNotification('Fridge purchased! +$10 bonus!'); updateComputerUI(); saveGame();
+            // Start fridge tutorial
+            if(!tutorialCompletedGlobal) { tutorialActive=false; }
+            fridgeTutorialActive=true; fridgeTutorialStep=0;
+            spawnMilkDeliveryBox(); // spawn one immediately for the tutorial
+            updateFridgeTutorialUI();
+        }
+        function spawnMilkDeliveryBox() {
+            if(deliveryBoxes.length>=3 || !ownsFridge || fridgeStock.length>=MAX_FRIDGE_CAPACITY) return;
+            let dBox = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), milkBoxMat);
+            dBox.position.set(0.7, 0.35+(deliveryBoxes.filter(b=>b.userData.boxType==='milk').length*0.7), -6.5);
+            dBox.userData={type:'milk_box', count:3, boxType:'milk'};
+            dBox.castShadow=true; dBox.receiveShadow=true;
+            interactables.push(dBox); scene.add(dBox); deliveryBoxes.push(dBox);
+            showNotification('Milk box has arrived!');
+        }
+        function spawnCerealBoxIfNeeded() {
+            if(deliveryBoxes.some(b=>b.userData.boxType==='cereal')) return;
+            if(deliveryBoxes.length>=3) return;
+            let dBox = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), boxMat);
+            dBox.position.set(0, 0.35+(deliveryBoxes.filter(b=>b.userData.boxType==='cereal').length*0.7), -6.5);
+            dBox.userData={type:'box', count:6, boxType:'cereal'};
+            dBox.castShadow=true; dBox.receiveShadow=true;
+            interactables.push(dBox); scene.add(dBox); deliveryBoxes.push(dBox);
+        }
+        function init3D() {
+            if(scene) document.getElementById('canvas-container').innerHTML='';
+            scene = new THREE.Scene(); scene.background = new THREE.Color(0x7fb3d5);
+            clock = new THREE.Clock();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            camera.position.set(0,1.6,0); scene.add(camera);
+            renderer = new THREE.WebGLRenderer({antialias:true});
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+            scene.add(new THREE.AmbientLight(0xffffff,0.4));
+            const sun = new THREE.DirectionalLight(0xffffff,0.6); sun.position.set(20,30,15); sun.castShadow=true; sun.name='sunLight'; scene.add(sun);
+            buildWorld(); if(ownsFridge) buildFridge(); spawnCerealBoxIfNeeded();
+            if(window._saveDataPending) {
+                const sd = window._saveDataPending; window._saveDataPending=null;
+                if(sd.shelfStockData) sd.shelfStockData.forEach(d=>{
+                    let m = new THREE.Mesh(cerealGeo, cerealMat); m.position.fromArray(d.pos); m.castShadow=true; scene.add(m); shelfStock.push(m);
+                });
+                if(sd.fridgeStockData && ownsFridge) sd.fridgeStockData.forEach(d=>{
+                    let cart = createMilkCartonMesh(); cart.position.fromArray(d.pos); scene.add(cart); fridgeStock.push(cart);
+                });
+                if(sd.deliveryBoxesData) sd.deliveryBoxesData.forEach(d=>{
+                    const mat = d.type==='milk'?milkBoxMat:boxMat;
+                    let b = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), mat); b.position.fromArray(d.pos);
+                    b.userData={type:d.type==='milk'?'milk_box':'box', count:d.count, boxType:d.type};
+                    b.castShadow=true; b.receiveShadow=true; interactables.push(b); scene.add(b); deliveryBoxes.push(b);
+                });
+                if(inventory.holdingBox && heldBoxVisual==null){
+                    heldBoxVisual = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), boxMat); heldBoxVisual.scale.set(0.35,0.35,0.35); heldBoxVisual.position.set(0.3,-0.2,-0.6); camera.add(heldBoxVisual);
+                } else if(inventory.holdingMilkBox && heldBoxVisual==null){
+                    heldBoxVisual = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), milkBoxMat); heldBoxVisual.scale.set(0.35,0.35,0.35); heldBoxVisual.position.set(0.3,-0.2,-0.6); camera.add(heldBoxVisual);
+                }
+            }
+            createStars(); animate();
+        }
+        function createStars() {
+            if(starsParticles) scene.remove(starsParticles);
+            const g = new THREE.BufferGeometry(); const pc=600; const pos=new Float32Array(pc*3);
+            for(let i=0;i<pc;i++){ pos[i*3]=(Math.random()-0.5)*80; pos[i*3+1]=15+Math.random()*40; pos[i*3+2]=(Math.random()-0.5)*80; }
+            g.setAttribute('position',new THREE.BufferAttribute(pos,3));
+            starsParticles = new THREE.Points(g, new THREE.PointsMaterial({color:0xffffff,size:0.15,transparent:true,opacity:0,depthWrite:false}));
+            starsParticles.name='stars'; scene.add(starsParticles);
+        }
+        function createMesh(geo,mat,cast=true,receive=true) {
+            let m = new THREE.Mesh(geo,mat); m.castShadow=cast; m.receiveShadow=receive; return m;
+        }
+        function buildWorld() {
+            let ground = createMesh(new THREE.PlaneGeometry(150,150), new THREE.MeshStandardMaterial({color:0x58d68d,roughness:1}),false,true);
+            ground.rotation.x=-Math.PI/2; ground.position.y=-0.05; scene.add(ground);
+            let road = createMesh(new THREE.PlaneGeometry(150,12), new THREE.MeshStandardMaterial({color:0x333333,roughness:0.8}),false,true);
+            road.rotation.x=-Math.PI/2; road.position.set(0,0.01,-22); scene.add(road);
+            let line = createMesh(new THREE.BoxGeometry(200,0.01,0.2), new THREE.MeshStandardMaterial({color:0xFFFF00}),false,false);
+            line.position.set(0,0.021,-22); scene.add(line);
+
+            const store = new THREE.Group(); store.name='storeGroup';
+            let floor = createMesh(new THREE.PlaneGeometry(10,10), new THREE.MeshStandardMaterial({color:0xbdc3c7}),false,true);
+            floor.rotation.x=-Math.PI/2; floor.position.y=0.02; store.add(floor);
+            store.add(createMesh(new THREE.BoxGeometry(10,0.5,10), new THREE.MeshStandardMaterial({color:0xffffff}),false,true).translateY(4.25));
+            for(let x=-2.5;x<=2.5;x+=5){
+                store.add(createMesh(new THREE.BoxGeometry(1,0.1,6), new THREE.MeshBasicMaterial({color:0xffffff})).translateY(4.0).translateX(x));
+                let pl = new THREE.PointLight(0xffffee,0.6,12); pl.position.set(x,3.8,0); pl.castShadow=true; store.add(pl);
+            }
+            const wMat = new THREE.MeshStandardMaterial({color:0xecf0f1});
+            store.add(createMesh(new THREE.BoxGeometry(10,4,1), wMat).translateZ(5.5).translateY(2));
+            store.add(createMesh(new THREE.BoxGeometry(1,4,10), wMat).translateX(-5.5).translateY(2));
+            store.add(createMesh(new THREE.BoxGeometry(1,4,10), wMat).translateX(5.5).translateY(2));
+            let fL = createMesh(new THREE.BoxGeometry(4,4,1), wMat); fL.position.set(-3.5,2,-5.5); fL.userData={type:'wall'}; store.add(fL);
+            let fR = createMesh(new THREE.BoxGeometry(4,4,1), wMat); fR.position.set(3.5,2,-5.5); fR.userData={type:'wall'}; store.add(fR);
+            let invL = createMesh(new THREE.BoxGeometry(4,4,1), new THREE.MeshBasicMaterial({visible:false})); invL.position.set(-3.5,2,-5.5); invL.userData={type:'wall_collision'}; interactables.push(invL); store.add(invL);
+            let invR = createMesh(new THREE.BoxGeometry(4,4,1), new THREE.MeshBasicMaterial({visible:false})); invR.position.set(3.5,2,-5.5); invR.userData={type:'wall_collision'}; interactables.push(invR); store.add(invR);
+
+            let floorHit = createMesh(new THREE.BoxGeometry(9,0.1,9), new THREE.MeshBasicMaterial({visible:false})); floorHit.position.set(0,0.1,0); floorHit.userData={type:'floor'}; interactables.push(floorHit); store.add(floorHit);
+            let reg = createMesh(new THREE.BoxGeometry(2,1.2,1), new THREE.MeshStandardMaterial({color:0x34495e})); reg.position.set(-3,0.6,1);
+            let scr = createMesh(new THREE.BoxGeometry(0.6,0.4,0.05), new THREE.MeshStandardMaterial({color:0x111,emissive:0x222,emissiveIntensity:0.5}));
+            scr.position.set(-0.8,0.8,0.2); scr.rotation.x=-0.1; scr.userData={type:'computer'}; interactables.push(scr); reg.add(scr);
+            reg.userData={type:'register'}; interactables.push(reg); store.add(reg);
+
+            let shelfG = new THREE.Group(); const wood = new THREE.MeshStandardMaterial({color:0xC19A6B,roughness:0.8});
+            let back = createMesh(new THREE.BoxGeometry(3.2,3,0.1), wood); back.position.set(0,1.5,0.45); back.userData={type:'shelf'}; interactables.push(back); shelfG.add(back);
+            [0.8,1.4,2.0].forEach(h=>{
+                let p = createMesh(new THREE.BoxGeometry(3,0.08,0.9), wood); p.position.set(0,h,0); p.userData={type:'shelf'}; interactables.push(p); shelfG.add(p);
+            });
+            shelfG.position.set(3.5,0,4); store.add(shelfG);
+            scene.add(store);
+        }
+
+        function buildFridge() {
+            if(fridgeGroup) {
+                scene.remove(fridgeGroup);
+                interactables = interactables.filter(i => i.userData.type !== 'fridge_shelf');
+                fridgeShelves = [];
+            }
+            fridgeGroup = new THREE.Group(); fridgeGroup.name='fridgeGroup';
+            const blackMat = new THREE.MeshStandardMaterial({color:0x333333, roughness:0.6, metalness:0.5});
+            // Thick visible walls
+            fridgeGroup.add(createMesh(new THREE.BoxGeometry(1.2,2.6,0.15), blackMat).translate(0,1.3,-0.425)); // back
+            fridgeGroup.add(createMesh(new THREE.BoxGeometry(0.15,2.6,0.9), blackMat).translate(-0.675,1.3,0)); // left
+            fridgeGroup.add(createMesh(new THREE.BoxGeometry(0.15,2.6,0.9), blackMat).translate(0.675,1.3,0)); // right
+            fridgeGroup.add(createMesh(new THREE.BoxGeometry(1.2,0.15,0.9), blackMat).translate(0,2.675,0)); // top
+            fridgeGroup.add(createMesh(new THREE.BoxGeometry(1.2,0.15,0.9), blackMat).translate(0,0.075,0)); // bottom
+            const shelfMat = new THREE.MeshStandardMaterial({color:0x7f8c8d, roughness:0.5, metalness:0.3});
+            const shHeights = [0.65, 1.35, 2.05];
+            shHeights.forEach((h,i)=>{
+                const s = createMesh(new THREE.BoxGeometry(1.0,0.05,0.7), shelfMat); s.position.set(0,h,0.05);
+                s.userData={type:'fridge_shelf', shelfIndex:i}; interactables.push(s); fridgeShelves.push(s); fridgeGroup.add(s);
+            });
+            fridgeDoorHinge = new THREE.Group();
+            fridgeDoorHinge.position.set(-0.675, 1.3, 0.47);
+            const doorWidth = 1.35;
+            const doorMesh = createMesh(new THREE.BoxGeometry(doorWidth, 2.3, 0.04),
+                new THREE.MeshStandardMaterial({color:0xaaddff, roughness:0.1, metalness:0.1, transparent:true, opacity:0.15, depthWrite:false}));
+            doorMesh.position.set(doorWidth/2, 0, 0);
+            fridgeDoorHinge.add(doorMesh);
+            const handle = createMesh(new THREE.BoxGeometry(0.08,0.5,0.06), new THREE.MeshStandardMaterial({color:0xcccccc, roughness:0.2, metalness:0.8}));
+            handle.position.set(doorWidth-0.1, 0, 0);
+            fridgeDoorHinge.add(handle);
+            fridgeGroup.add(fridgeDoorHinge);
+            fridgeGroup.position.set(-4.2, 0, -3.5);
+            fridgeGroup.rotation.y = 0.3;
+            fridgeDoorTargetAngle = 0;
+            fridgeDoorCurrentAngle = 0;
+            scene.add(fridgeGroup);
+        }
+
+        function createClassicCar() {
+            let car = new THREE.Group();
+            let bMat = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff });
+            car.add(createMesh(new THREE.BoxGeometry(4.5, 1, 2), bMat).translateY(0.8));
+            car.add(createMesh(new THREE.BoxGeometry(2.5, 0.8, 1.8), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.1 })).translate(-0.5, 1.7, 0));
+            let hlGeo = new THREE.BoxGeometry(0.1, 0.3, 0.4);
+            let hlMat = new THREE.MeshStandardMaterial({ color: 0xffffaa, emissive: 0xffffaa, emissiveIntensity: 1 });
+            car.add(createMesh(hlGeo, hlMat).translate(-2.25, 0.9, 0.7));
+            car.add(createMesh(hlGeo, hlMat).translate(-2.25, 0.9, -0.7));
+            let tlGeo = new THREE.BoxGeometry(0.1, 0.2, 0.4);
+            let tlMat = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1 });
+            car.add(createMesh(tlGeo, tlMat).translate(2.25, 0.9, 0.7));
+            car.add(createMesh(tlGeo, tlMat).translate(2.25, 0.9, -0.7));
+            let wGeo = new THREE.CylinderGeometry(0.5, 0.5, 0.4, 16); wGeo.rotateX(Math.PI / 2);
+            let wMat = new THREE.MeshStandardMaterial({ color: 0x222, roughness: 0.9 });
+            [
+                [1.2, 0.5, 1.1],
+                [-1.2, 0.5, 1.1],
+                [1.2, 0.5, -1.1],
+                [-1.2, 0.5, -1.1]
+            ].forEach(p => car.add(createMesh(wGeo, wMat).translate(...p)));
+            return car;
+        }
+
+        function spawnCustomer() {
+            let c = new THREE.Group();
+            c.add(createMesh(new THREE.CylinderGeometry(0.5,0.5,1.2,16), new THREE.MeshStandardMaterial({color:Math.random()>0.5?0xe74c3c:0x2980b9})).translateY(0.6));
+            c.add(createMesh(new THREE.SphereGeometry(0.4,16,16), new THREE.MeshStandardMaterial({color:0xffccaa})).translateY(1.6));
+            c.position.set(15,0,-8); scene.add(c);
+            customers.push({mesh:c, state:'to_door_out', timer:0, heldItemType:null});
+        }
+        function showMoneyPopup(wPos, amt) {
+            const pop = document.createElement('div'); pop.className='money-popup'; pop.textContent='+$'+amt.toFixed(2);
+            document.getElementById('game-ui').appendChild(pop);
+            const v = wPos.clone().project(camera); pop.style.left=((v.x*0.5+0.5)*window.innerWidth)+'px'; pop.style.top=((-v.y*0.5+0.5)*window.innerHeight)+'px';
+            setTimeout(()=>{if(pop.parentNode)pop.remove();},1500);
+        }
+        function checkCollision(x,z) {
+            let inStore = (x>-5&&x<5&&z>-5&&z<5);
+            let inDoorway = (x>-1.5&&x<1.5&&z>=-6&&z<=-5);
+            if(z<=-5.2 && !inDoorway && z>-7) return false;
+            if(inStore) {
+                if(x>-4.5&&x<-1.5&&z>0&&z<2) return false;
+                if(x>1.5&&x<5&&z>3&&z<5) return false;
+                if(ownsFridge && fridgeGroup) {
+                    const fp = fridgeGroup.position;
+                    if(x>fp.x-0.8&&x<fp.x+0.8&&z>fp.z-0.7&&z<fp.z+0.7) return false;
+                }
+            }
+            return true;
+        }
+        let carTimer=0, custTimer=0;
+        function updateFridgeTutorialUI() {
+            const t=document.getElementById('tutorial-text'), a=document.getElementById('tutorial-arrow');
+            if(!fridgeTutorialActive) { t.style.display='none'; a.style.display='none'; return; }
+            t.style.display='block'; a.style.display='block';
+            let target=new THREE.Vector3(), msg='';
+            if(fridgeTutorialStep===0) {
+                if(deliveryBoxes.some(b=>b.userData.boxType==='milk')) {
+                    const milkBox = deliveryBoxes.find(b=>b.userData.boxType==='milk');
+                    target.copy(milkBox.position);
+                } else target.set(0.7,0.35,-6.5);
+                msg='Walk to the milk box and pick it up';
+            } else if(fridgeTutorialStep===1) {
+                target.set(fridgeGroup.position.x, fridgeGroup.position.y+1.35, fridgeGroup.position.z);
+                msg='Stock the milk cartons in the fridge';
+            }
+            t.innerText=msg;
+            let v=target.clone().project(camera); let x=(v.x*0.5+0.5)*window.innerWidth, y=(-v.y*0.5+0.5)*window.innerHeight;
+            if(v.z>1) a.style.display='none'; else { a.style.left=x+'px'; a.style.top=y+'px'; }
+        }
+        function updateTutorialUI() {
+            const t=document.getElementById('tutorial-text'), a=document.getElementById('tutorial-arrow');
+            if(!tutorialActive||tutorialStep<0||tutorialStep>2||isPaused||fridgeTutorialActive){ t.style.display='none'; a.style.display='none'; return; }
+            t.style.display='block'; a.style.display='block';
+            let target=new THREE.Vector3(), msg='';
+            if(tutorialStep===0){ if(deliveryBoxes.length>0)target.copy(deliveryBoxes[0].position); else target.set(0,0.35,-6.5); msg='Walk to the delivery box and pick it up'; }
+            else if(tutorialStep===1){ target.set(3.5,1.5,4); msg='Stock all 6 cereal boxes on the shelf'; }
+            else { target.set(-3,1.2,1); msg='Wait for customer, tap register to collect money'; }
+            t.innerText=msg;
+            let v=target.clone().project(camera); let x=(v.x*0.5+0.5)*window.innerWidth, y=(-v.y*0.5+0.5)*window.innerHeight;
+            if(v.z>1) a.style.display='none'; else { a.style.left=x+'px'; a.style.top=y+'px'; }
+        }
+        function updateLighting() {
+            const total=gameData.timeHours*60+gameData.timeMinutes, t=total/60;
+            let amb, sunI, sky; let starOp=0;
+            if(t>=23||t<5){ amb=0.08; sunI=0.02; sky=new THREE.Color(0x050510); starOp=1; nightMode=1; }
+            else if(t>=5&&t<9){ const f=(t-5)/4; amb=0.08+f*0.32; sunI=0.02+f*0.58; sky=new THREE.Color(0x050510).lerp(new THREE.Color(0x7fb3d5),f); starOp=1-f; nightMode=1-f; }
+            else if(t>=19&&t<23){ const f=(t-19)/4; amb=0.4-f*0.32; sunI=0.6-f*0.58; sky=new THREE.Color(0x7fb3d5).lerp(new THREE.Color(0x050510),f); starOp=f; nightMode=f; }
+            else { amb=0.4; sunI=0.6; sky=new THREE.Color(0x7fb3d5); starOp=0; nightMode=0; }
+            scene.background=sky;
+            const al=scene.children.find(c=>c.isAmbientLight); if(al) al.intensity=amb;
+            const sun=scene.getObjectByName('sunLight'); if(sun) sun.intensity=sunI;
+            if(starsParticles) starsParticles.material.opacity=starOp;
+        }
+        function animateFridgeDoor(delta) {
+            if(!fridgeDoorHinge) return;
+            const speed=2.5;
+            if(Math.abs(fridgeDoorCurrentAngle-fridgeDoorTargetAngle)>0.01) {
+                const dir=fridgeDoorTargetAngle>fridgeDoorCurrentAngle?1:-1;
+                fridgeDoorCurrentAngle+=dir*speed*delta;
+                if(dir>0&&fridgeDoorCurrentAngle>fridgeDoorTargetAngle) fridgeDoorCurrentAngle=fridgeDoorTargetAngle;
+                if(dir<0&&fridgeDoorCurrentAngle<fridgeDoorTargetAngle) fridgeDoorCurrentAngle=fridgeDoorTargetAngle;
+                fridgeDoorHinge.rotation.y = fridgeDoorCurrentAngle;
+            }
+        }
+        function applyCustomerSeparation(delta) {
+            const minDist=0.8;
+            for(let i=0;i<customers.length;i++) {
+                for(let j=i+1;j<customers.length;j++) {
+                    const a=customers[i].mesh.position, b=customers[j].mesh.position;
+                    const dist=a.distanceTo(b);
+                    if(dist<minDist) {
+                        const dir=new THREE.Vector3().subVectors(a,b).normalize();
+                        const push=(minDist-dist)*0.5*delta*3;
+                        a.add(dir.clone().multiplyScalar(push));
+                        b.add(dir.clone().multiplyScalar(-push));
+                    }
+                }
+            }
+        }
+        function animate() {
+            requestAnimationFrame(animate);
+            if(!scene||!camera||!renderer) return;
+            if(isPaused){ renderer.render(scene,camera); return; }
+            let delta=Math.min(clock.getDelta(),0.1);
+            updateLighting();
+            animateFridgeDoor(delta);
+            applyCustomerSeparation(delta);
+
+            if(ownsFridge && fridgeStock.length < MAX_FRIDGE_CAPACITY && deliveryBoxes.length < 3) {
+                milkAutoTimer -= delta;
+                if(milkAutoTimer <= 0) {
+                    spawnMilkDeliveryBox();
+                    milkAutoTimer = 60;
+                }
+            } else { milkAutoTimer = 60; }
+
+            cerealRespawnTimer -= delta;
+            if(!deliveryBoxes.some(b=>b.userData.boxType==='cereal') && deliveryBoxes.length < 3 && cerealRespawnTimer <= 0) {
+                spawnCerealBoxIfNeeded();
+                cerealRespawnTimer = 10;
+            }
+
+            if(tutorialActive && !fridgeTutorialActive) {
+                if(tutorialStep===0 && inventory.holdingBox) tutorialStep=1;
+                if(tutorialStep===1 && shelfStock.length>=6) { tutorialStep=2; if(customers.length===0) spawnCustomer(); }
+                if(tutorialStep===2 && gameData.money>50.00) {
+                    tutorialActive=false; tutorialCompletedGlobal=true; localStorage.setItem('mm_tutorial_done','true');
+                }
+                updateTutorialUI();
+            }
+
+            if(fridgeTutorialActive) {
+                if(fridgeTutorialStep===0 && inventory.holdingMilkBox) { fridgeTutorialStep=1; }
+                if(fridgeTutorialStep===1 && fridgeStock.length>=3) {
+                    fridgeTutorialActive=false;
+                    showNotification('Fridge tutorial complete!');
+                }
+                updateFridgeTutorialUI();
+            }
+
+            if(!fridgeTutorialShown && gameData.money>=100 && !ownsFridge && !tutorialActive && !fridgeTutorialActive) { fridgeTutorialShown=true; showFridgeTutorial(); }
+
+            gameData.timeMinutes+=delta*5;
+            if(gameData.timeMinutes>=60){ gameData.timeMinutes-=60; gameData.timeHours++; if(gameData.timeHours>=24){ gameData.timeHours=0; gameData.day++; } }
+            document.getElementById('ui-time').innerText = String(gameData.timeHours).padStart(2,'0')+':'+String(Math.floor(gameData.timeMinutes)).padStart(2,'0');
+            document.getElementById('ui-money').innerText = gameData.money.toFixed(2);
+            document.getElementById('ui-day').innerText = gameData.day;
+
+            carTimer+=delta;
+            if(carTimer>4){ let car = createClassicCar(); car.position.set(40,0,-21-(Math.random()*2)); scene.add(car); cars.push(car); carTimer=0; }
+            for(let i=cars.length-1;i>=0;i--){ cars[i].position.x-=delta*15; if(cars[i].position.x<-40){ scene.remove(cars[i]); cars.splice(i,1); } }
+
+            custTimer+=delta;
+            const maxCust=4, hasCereal=shelfStock.length>0, hasMilk=fridgeStock.length>0;
+            if(custTimer>5 && (hasCereal||hasMilk) && customers.length<maxCust && !tutorialActive && !fridgeTutorialActive) { spawnCustomer(); custTimer=0; }
+            if(custTimer>8 && customers.length<maxCust && !tutorialActive && !fridgeTutorialActive) { spawnCustomer(); custTimer=0; }
+
+            for(let i=customers.length-1;i>=0;i--) {
+                let c=customers[i], spd=delta*4;
+                if(c.state==='to_door_out'){ c.mesh.position.x-=spd; if(c.mesh.position.x<=0){c.mesh.position.x=0; c.state='entering';} }
+                else if(c.state==='entering'){ c.mesh.position.z+=spd; if(c.mesh.position.z>=0){c.mesh.position.z=0; c.state='choose_item';} }
+                else if(c.state==='choose_item'){
+                    if(Math.random()<0.5 && fridgeStock.length>0 && ownsFridge) c.state='to_fridge_x';
+                    else if(shelfStock.length>0) c.state='to_shelf_x';
+                    else if(fridgeStock.length>0) c.state='to_fridge_x';
+                    else c.state='leaving_z';
+                }
+                else if(c.state==='to_shelf_x'){ c.mesh.position.x+=spd; if(c.mesh.position.x>=3.5){c.mesh.position.x=3.5; c.state='to_shelf_z';} }
+                else if(c.state==='to_shelf_z'){ c.mesh.position.z+=spd; if(c.mesh.position.z>=2.0){c.mesh.position.z=2.0; c.state='browsing'; c.timer=2;} }
+                else if(c.state==='browsing'){ c.timer-=delta; if(c.timer<=0){ if(shelfStock.length>0){
+                    let box=shelfStock.pop(); scene.remove(box);
+                    let held=new THREE.Mesh(cerealGeo,cerealMat); held.position.set(0,2.3,0); held.name='held_item'; c.mesh.add(held);
+                    c.heldItemType='cereal'; c.state='to_register_z';
+                } else c.state='leaving_z'; } }
+                else if(c.state==='to_fridge_x'){ const targetX=fridgeGroup?fridgeGroup.position.x:-4.2; if(c.mesh.position.x<targetX) c.mesh.position.x+=spd; else {c.mesh.position.x=targetX; c.state='to_fridge_z';} }
+                else if(c.state==='to_fridge_z'){ const targetZ=fridgeGroup?fridgeGroup.position.z:-3.5; if(c.mesh.position.z<targetZ) c.mesh.position.z+=spd; else {c.mesh.position.z=targetZ; c.state='browsing_fridge'; c.timer=2; fridgeDoorTargetAngle=0.8;} }
+                else if(c.state==='browsing_fridge'){ c.timer-=delta; if(c.timer<=0){ if(fridgeStock.length>0){
+                    let milk=fridgeStock.pop(); scene.remove(milk);
+                    let held=createMilkCartonMesh(); held.position.set(0,2.3,0); held.name='held_item'; c.mesh.add(held);
+                    c.heldItemType='milk'; c.state='to_register_z'; fridgeDoorTargetAngle=0;
+                } else { c.state='leaving_z'; fridgeDoorTargetAngle=0; } } }
+                else if(c.state==='to_register_z'){ c.mesh.position.z-=spd; if(c.mesh.position.z<=1){c.mesh.position.z=1; c.state='to_register_x';} }
+                else if(c.state==='to_register_x'){ c.mesh.position.x-=spd; if(c.mesh.position.x<=-1){c.mesh.position.x=-1; c.state='waiting';} }
+                else if(c.state==='leaving_x'){ c.mesh.position.x+=spd; if(c.mesh.position.x>=0){c.mesh.position.x=0; c.state='leaving_z';} }
+                else if(c.state==='leaving_z'){ c.mesh.position.z-=spd; if(c.mesh.position.z<=-8){c.mesh.position.z=-8; c.state='leaving_street';} }
+                else if(c.state==='leaving_street'){ c.mesh.position.x-=spd; if(c.mesh.position.x<-20){ scene.remove(c.mesh); customers.splice(i,1); } }
+            }
+
+            if(isMoving){
+                let fwd=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion); fwd.y=0; fwd.normalize();
+                let right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion); right.y=0; right.normalize();
+                let px=camera.position.x + (fwd.x*-joystickData.y*0.12)+(right.x*joystickData.x*0.12);
+                let pz=camera.position.z + (fwd.z*-joystickData.y*0.12)+(right.z*joystickData.x*0.12);
+                if(checkCollision(px,camera.position.z)) camera.position.x=px;
+                if(checkCollision(camera.position.x,pz)) camera.position.z=pz;
+            }
+
+            raycaster.setFromCamera(screenCenter,camera);
+            const ints=raycaster.intersectObjects(interactables);
+            let ch=document.getElementById('crosshair');
+            if(ints.length>0 && ints[0].distance<4.0){
+                targetedObject=ints[0].object;
+                let t=targetedObject.userData.type;
+                if((t==='box'&&!inventory.holdingBox&&!inventory.holdingMilkBox)||(t==='milk_box'&&!inventory.holdingBox&&!inventory.holdingMilkBox)){
+                    ch.innerHTML=''; ch.style.borderColor=t==='milk_box'?'#87CEEB':'#f39c12'; ch.style.display='flex';
+                } else if(t==='shelf'&&inventory.holdingBox&&inventory.cerealCount>0&&shelfStock.length<MAX_SHELF_CAPACITY){
+                    ch.innerHTML=svgStock; ch.style.borderColor='#f1c40f'; ch.style.display='flex';
+                } else if(t==='fridge_shelf'&&inventory.holdingMilkBox&&inventory.milkCount>0&&fridgeStock.length<MAX_FRIDGE_CAPACITY){
+                    const shelfIdx=targetedObject.userData.shelfIndex||0;
+                    const shHeights=[0.65,1.35,2.05]; const fp=fridgeGroup.position;
+                    const countInShelf = fridgeStock.filter(f=>Math.abs(f.position.y-fp.y-shHeights[shelfIdx])<0.15).length;
+                    if(countInShelf<3){
+                        ch.innerHTML=svgStock; ch.style.borderColor='#87CEEB'; ch.style.display='flex';
+                    } else { ch.style.display='none'; targetedObject=null; }
+                } else if(t==='floor'&&(inventory.holdingBox||inventory.holdingMilkBox)){
+                    ch.innerHTML=svgDrop; ch.style.borderColor='#f1c40f'; ch.style.display='flex';
+                } else if(t==='register'&&customers.some(c=>c.state==='waiting')){
+                    ch.innerHTML=svgMoney; ch.style.borderColor='#f1c40f'; ch.style.display='flex';
+                } else if(t==='computer'){
+                    ch.innerHTML=svgComputer; ch.style.borderColor='#9b59b6'; ch.style.display='flex';
+                } else { ch.style.display='none'; targetedObject=null; }
+            } else { targetedObject=null; ch.style.display='none'; }
+
+            renderer.render(scene,camera);
+        }
+
+        function interact(event) {
+            if(event){ event.stopPropagation(); event.preventDefault(); }
+            if(!targetedObject||isPaused) return;
+            let t=targetedObject.userData.type;
+            if((t==='box'||t==='milk_box') && !inventory.holdingBox && !inventory.holdingMilkBox){
+                if(t==='box'){ inventory.holdingBox=true; inventory.cerealCount=targetedObject.userData.count; }
+                else { inventory.holdingMilkBox=true; inventory.milkCount=targetedObject.userData.count; }
+                scene.remove(targetedObject); interactables.splice(interactables.indexOf(targetedObject),1);
+                let idx=deliveryBoxes.indexOf(targetedObject);
+                if(idx!==-1){ deliveryBoxes.splice(idx,1); for(let i=0;i<deliveryBoxes.length;i++) deliveryBoxes[i].position.y=0.35+(i*0.7); }
+                heldBoxVisual = new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), t==='milk_box'?milkBoxMat:boxMat);
+                heldBoxVisual.scale.set(0.35,0.35,0.35); heldBoxVisual.position.set(0.3,-0.2,-0.6); camera.add(heldBoxVisual);
+                document.getElementById('crosshair').style.display='none';
+            } else if(t==='shelf' && inventory.holdingBox && inventory.cerealCount>0 && shelfStock.length<MAX_SHELF_CAPACITY){
+                inventory.cerealCount--;
+                let layer=Math.floor(shelfStock.length/5), slot=shelfStock.length%5, heights=[1.065,1.665,2.265];
+                let box=new THREE.Mesh(cerealGeo,cerealMat); box.position.set(2.4+(slot*0.55),heights[layer],4); box.castShadow=true;
+                scene.add(box); shelfStock.push(box);
+                if(inventory.cerealCount===0){ inventory.holdingBox=false; camera.remove(heldBoxVisual); heldBoxVisual=null; }
+                chDisplayNone();
+            } else if(t==='fridge_shelf' && inventory.holdingMilkBox && inventory.milkCount>0 && fridgeStock.length<MAX_FRIDGE_CAPACITY){
+                const fp=fridgeGroup.position;
+                const shelfIdx=targetedObject.userData.shelfIndex||0;
+                const shHeights=[0.65,1.35,2.05];
+                const countInShelf = fridgeStock.filter(f=>Math.abs(f.position.y-fp.y-shHeights[shelfIdx])<0.15).length;
+                if(countInShelf>=3) { chDisplayNone(); return; }
+                inventory.milkCount--;
+                let carton=createMilkCartonMesh();
+                carton.position.set(fp.x-0.35+countInShelf*0.35, fp.y+shHeights[shelfIdx], fp.z+0.2);
+                carton.castShadow=true; carton.receiveShadow=true; scene.add(carton); fridgeStock.push(carton);
+                fridgeDoorTargetAngle=0.8; setTimeout(()=>{fridgeDoorTargetAngle=0;},1200);
+                if(inventory.milkCount===0){ inventory.holdingMilkBox=false; camera.remove(heldBoxVisual); heldBoxVisual=null; }
+                chDisplayNone(); updateComputerUI();
+            } else if(t==='floor' && (inventory.holdingBox||inventory.holdingMilkBox)){
+                let boxType=inventory.holdingBox?'cereal':'milk'; let count=inventory.holdingBox?inventory.cerealCount:inventory.milkCount;
+                if(inventory.holdingBox) inventory.holdingBox=false; else inventory.holdingMilkBox=false;
+                camera.remove(heldBoxVisual); heldBoxVisual=null;
+                let drop=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9), boxType==='milk'?milkBoxMat:boxMat);
+                drop.position.set(camera.position.x,0.35,camera.position.z-1);
+                drop.userData={type:boxType==='milk'?'milk_box':'box', count:count, boxType:boxType};
+                drop.castShadow=true; drop.receiveShadow=true; interactables.push(drop); scene.add(drop); deliveryBoxes.push(drop);
+                chDisplayNone();
+            } else if(t==='register'){
+                for(let c of customers){
+                    if(c.state==='waiting'){
+                        let amt=c.heldItemType==='milk'?6.99:8.99;
+                        gameData.money+=amt; showMoneyPopup(c.mesh.position,amt);
+                        let held=c.mesh.getObjectByName('held_item'); if(held) c.mesh.remove(held);
+                        c.state='leaving_x'; c.heldItemType=null;
+                    }
+                }
+                chDisplayNone();
+            } else if(t==='computer'){ openComputer(); chDisplayNone(); }
+        }
+        function chDisplayNone(){ document.getElementById('crosshair').style.display='none'; }
+
+        let isMoving=false, joystickData={x:0,y:0};
+        function setupControls(){
+            const lookZ=document.getElementById('look-zone'), joyZ=document.getElementById('joystick-zone');
+            const joyB=document.getElementById('joystick-base'), joyS=document.getElementById('joystick-stick');
+            let looking=false, prevLook={x:0,y:0}, joyCenter={x:0,y:0};
+            lookZ.addEventListener('touchstart',e=>{ if(e.target.id==='crosshair'||e.target.closest('#crosshair')||e.target.closest('#pause-btn'))return; looking=true; prevLook={x:e.touches[0].pageX,y:e.touches[0].pageY}; },{passive:false});
+            lookZ.addEventListener('touchmove',e=>{ if(!looking)return; camera.rotation.order='YXZ'; camera.rotation.y-=(e.touches[0].pageX-prevLook.x)*0.005; camera.rotation.x-=(e.touches[0].pageY-prevLook.y)*0.005; camera.rotation.x=Math.max(-Math.PI/2,Math.min(Math.PI/2,camera.rotation.x)); prevLook={x:e.touches[0].pageX,y:e.touches[0].pageY}; },{passive:false});
+            lookZ.addEventListener('touchend',()=>{ looking=false; });
+            joyZ.addEventListener('touchstart',e=>{ if(e.target.closest('#pause-btn'))return; isMoving=true; joyCenter={x:e.touches[0].pageX,y:e.touches[0].pageY}; joyB.style.left=joyCenter.x+'px'; joyB.style.top=joyCenter.y+'px'; joyB.style.display='block'; joystickData={x:0,y:0}; },{passive:false});
+            joyZ.addEventListener('touchmove',e=>{ if(!isMoving)return; let dx=e.touches[0].pageX-joyCenter.x, dy=e.touches[0].pageY-joyCenter.y; let dist=Math.sqrt(dx*dx+dy*dy); if(dist>60){ dx=(dx/dist)*60; dy=(dy/dist)*60; } joyS.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; joystickData={x:dx/60,y:dy/60}; },{passive:false});
+            joyZ.addEventListener('touchend',()=>{ isMoving=false; joyB.style.display='none'; joystickData={x:0,y:0}; });
+        }
+        checkContinueButton();
+    </script>
+</body>
+</html>
